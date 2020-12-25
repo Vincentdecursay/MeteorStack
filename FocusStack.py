@@ -59,15 +59,15 @@ def align_images(unaligned_images, warp_mode=cv2.MOTION_TRANSLATION):
         size = im_ref.shape
 
         if warp_mode == cv2.MOTION_HOMOGRAPHY :
-            print "using MOTION HOMOGRAPHY for finding the ECC transform"
+            print("using MOTION HOMOGRAPHY for finding the ECC transform")
             warp_matrix = np.eye(3, 3, dtype=np.float32)
         else :
-            print "using MOTION_TRANSLATION for finding the ECC transform"
+            print("using MOTION_TRANSLATION for finding the ECC transform")
             warp_matrix = np.eye(2, 3, dtype=np.float32)
 
-        (cc, warp_matrix) = cv2.findTransformECC (im_ref_gray, image_to_align_gray, warp_matrix, warp_mode, criteria)
+        (cc, warp_matrix) = cv2.findTransformECC (im_ref_gray, image_to_align_gray, warp_matrix, warp_mode, criteria, None, 1)
 
-        print "Aligning image %s of %s" %(index+1, len(unaligned_images[1:]))
+        print("Aligning image %s of %s" %(index+1, len(unaligned_images[1:])))
         if warp_mode == cv2.MOTION_HOMOGRAPHY :
             # Use warpPerspective for Homography
             im2_aligned = cv2.warpPerspective (image_to_align, warp_matrix, (size[1], size[0]), flags=cv2.INTER_LINEAR + cv2.WARP_INVERSE_MAP)
@@ -98,14 +98,14 @@ def doLap(image):
 def focus_stack(unimages):
     images = align_images(unimages, cv2.MOTION_HOMOGRAPHY)
 
-    print "Computing the laplacian of the blurred images"
+    print("Computing the laplacian of the blurred images")
     laps = []
     for i in range(len(images)):
-        print "Lap {}".format(i)
+        print("Lap {}".format(i))
         laps.append(doLap(cv2.cvtColor(images[i],cv2.COLOR_BGR2GRAY)))
 
     laps = np.asarray(laps)
-    print "Shape of array of laplacians = {}".format(laps.shape)
+    print("Shape of array of laplacians = {}".format(laps.shape))
 
     output = np.zeros(shape=images[0].shape, dtype=images[0].dtype)
 
