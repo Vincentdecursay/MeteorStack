@@ -15,6 +15,7 @@ class MeteorStackFrame(wx.Frame):
         self.InitUI()
 
         self.picturesPath = []
+        self.focusimages = [] #loaded pictures
 
 
     def InitUI(self):
@@ -25,10 +26,9 @@ class MeteorStackFrame(wx.Frame):
         filemenu.Append(102, "E&xit"," Terminate the program")
         editmenu = wx.Menu()
         editmenu.Append(103, "Align + Stack pictures")
-        """
         editmenu.Append(104, "Align pictures")
         editmenu.Append(105, "Stack pictures")
-        """
+
 
         menuBar = wx.MenuBar()
         menuBar.Append(filemenu, "&File")
@@ -40,10 +40,9 @@ class MeteorStackFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, id=102)
 
         self.Bind(wx.EVT_MENU, self.AlignStack, id=103)
-        """
         self.Bind(wx.EVT_MENU, self.Align, id=104)
         self.Bind(wx.EVT_MENU, self.Stack, id=105)
-        """
+
     def ImportPictures(self, event):
         print("import pictures")
         with wx.FileDialog(self, "Import pictures", wildcard="All files (*.*)|*.*",
@@ -55,6 +54,15 @@ class MeteorStackFrame(wx.Frame):
             # Proceed loading the file chosen by the user
             self.picturesPath = fileDialog.GetPaths()
 
+            #load pictures
+            self.focusimages = []
+            for img in self.picturesPath:
+                print("Reading in file {}".format(img))
+                self.focusimages.append(cv2.imread(format(img)))
+
+            # reset aligned images
+            self.align_images = []
+
 
     def SaveResults(self, event):
         print("save results")
@@ -64,26 +72,35 @@ class MeteorStackFrame(wx.Frame):
 
     def AlignStack(self, event):
         print("align stack")
-        if self.picturesPath == []:
-            return #no picture to stack
+        self.Align(True)
+        self.Stack(True)
 
-        print(self.picturesPath)
 
-        focusimages = []
-        for img in self.picturesPath:
-            print("Reading in file {}".format(img))
-            focusimages.append(cv2.imread(format(img)))
 
-        merged = FocusStack.focus_stack(focusimages)
-        cv2.imwrite("merged.png", merged)
-
-    """
     def Align(self, event):
         print("align")
 
+        if self.focusimages == []:
+            return #no picture to stack
+
+        wait = wx.BusyInfo("Please wait, working...")
+        self.align_images = FocusStack.align_images(self.focusimages, cv2.MOTION_HOMOGRAPHY)
+
     def Stack(self, event):
         print("stack")
-    """
+
+        if self.align_images == []:
+            if self.focusimages == []:
+                return #no images to stack
+            else:
+                wait = wx.BusyInfo("Please wait, working...")
+                merged = FocusStack.focus_stack(self.focusimages)
+                cv2.imwrite("merged.png", merged)
+        else:
+            wait = wx.BusyInfo("Please wait, working...")
+            merged = FocusStack.focus_stack(self.align_images)
+            cv2.imwrite("merged.png", merged)
+
 
 
 
