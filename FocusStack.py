@@ -95,8 +95,7 @@ def doLap(image):
 #
 #   This routine finds the points of best focus in all images and produces a merged result...
 #
-def focus_stack(unimages):
-    images = align_images(unimages, cv2.MOTION_HOMOGRAPHY)
+def focus_stack(images):
 
     print("Computing the laplacian of the blurred images")
     laps = []
