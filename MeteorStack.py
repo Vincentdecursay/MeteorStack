@@ -16,6 +16,7 @@ class MeteorStackFrame(wx.Frame):
 
         self.picturesPath = []
         self.focusimages = [] #loaded pictures
+        self.stackedimages = []
 
 
     def InitUI(self):
@@ -43,6 +44,7 @@ class MeteorStackFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Align, id=104)
         self.Bind(wx.EVT_MENU, self.Stack, id=105)
 
+
     def ImportPictures(self, event):
         print("import pictures")
         with wx.FileDialog(self, "Import pictures", wildcard="All files (*.*)|*.*",
@@ -65,7 +67,21 @@ class MeteorStackFrame(wx.Frame):
 
 
     def SaveResults(self, event):
-        print("save results")
+
+        wildcard = "PNG (*.png)|*.png|" \
+                    "Jpeg (*.jpg;*.jpeg)|*.jpg;*.jpeg|" \
+                    "Tiff (*.tiff)|*.tiff|"\
+                    "All files (*.*)|*.*"
+
+        with wx.FileDialog(self, "Save results","test.png", wildcard=wildcard,
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
+
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return     # the user changed their mind
+
+            # save the current contents in the file
+            pathname = fileDialog.GetPath()
+            cv2.imwrite(pathname, self.stackedimages)
 
     def OnExit(self, event):
         self.Close(True)
@@ -74,8 +90,6 @@ class MeteorStackFrame(wx.Frame):
         print("align stack")
         self.Align(True)
         self.Stack(True)
-
-
 
     def Align(self, event):
         print("align")
@@ -95,14 +109,11 @@ class MeteorStackFrame(wx.Frame):
             else:
                 wait = wx.BusyInfo("Please wait, working...")
                 merged = FocusStack.focus_stack(self.focusimages)
-                cv2.imwrite("merged.png", merged)
         else:
             wait = wx.BusyInfo("Please wait, working...")
             merged = FocusStack.focus_stack(self.align_images)
-            cv2.imwrite("merged.png", merged)
 
-
-
+        self.stackedimages = merged
 
 
 
