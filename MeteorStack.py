@@ -16,6 +16,13 @@ ID_STOP_ALIGN = wx.NewIdRef(count=1)
 ID_START_STACK = wx.NewIdRef(count=1)
 ID_STOP_STACK = wx.NewIdRef(count=1)
 
+class RedirectText(object):
+    def __init__(self,aWxTextCtrl):
+        self.out = aWxTextCtrl
+
+    def write(self,string):
+        self.out.WriteText(string)
+
 class MeteorStackFrame(wx.Frame):
 
     def __init__(self, *args, **kw):
@@ -40,7 +47,6 @@ class MeteorStackFrame(wx.Frame):
         editmenu.Append(ID_START_ALIGN, "Align pictures")
         editmenu.Append(ID_START_STACK, "Stack pictures")
 
-
         menuBar = wx.MenuBar()
         menuBar.Append(filemenu, "&File")
         menuBar.Append(editmenu, "&Edit")
@@ -54,6 +60,12 @@ class MeteorStackFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Align, id=ID_START_ALIGN)
         self.Bind(wx.EVT_MENU, self.Stack, id=ID_START_STACK)
 
+
+        sizer = wx.GridBagSizer(hgap=5, vgap=5)
+
+        self.log = wx.TextCtrl(self, -1, size=(400, -1), style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
+        redir = RedirectText(self.log)
+        sys.stdout = redir
 
     def ImportPictures(self, event):
         print("import pictures")
@@ -122,7 +134,7 @@ class MeteorStackFrame(wx.Frame):
         else:
             wait = wx.BusyInfo("Please wait, working...")
             merged = FocusStack.focus_stack(self.align_images)
-
+            print(type(merged))
         self.stackedimages = merged
 
 
