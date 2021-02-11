@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 
 import wx
+from threading import *
 import sys
 import cv2
 import FocusStack
 
+ID_IMPORT_PICTURES = wx.NewIdRef(count=1)
+ID_SAVE_RESULTS = wx.NewIdRef(count=1)
+ID_EXIT = wx.NewIdRef(count=1)
+ID_START_ALIGN_AND_STACK = wx.NewIdRef(count=1)
+ID_STOP_ALIGN_AND_STACK = wx.NewIdRef(count=1)
+ID_START_ALIGN = wx.NewIdRef(count=1)
+ID_STOP_ALIGN = wx.NewIdRef(count=1)
+ID_START_STACK = wx.NewIdRef(count=1)
+ID_STOP_STACK = wx.NewIdRef(count=1)
 
 class MeteorStackFrame(wx.Frame):
 
@@ -22,13 +32,13 @@ class MeteorStackFrame(wx.Frame):
     def InitUI(self):
 
         filemenu= wx.Menu()
-        filemenu.Append(100, "Import pictures"," Import pictures")
-        filemenu.Append(101, "Save results"," Save results")
-        filemenu.Append(102, "E&xit"," Terminate the program")
+        filemenu.Append(ID_IMPORT_PICTURES, "Import pictures"," Import pictures")
+        filemenu.Append(ID_SAVE_RESULTS, "Save results"," Save results")
+        filemenu.Append(ID_EXIT, "E&xit"," Terminate the program")
         editmenu = wx.Menu()
-        editmenu.Append(103, "Align + Stack pictures")
-        editmenu.Append(104, "Align pictures")
-        editmenu.Append(105, "Stack pictures")
+        editmenu.Append(ID_START_ALIGN_AND_STACK, "Align + Stack pictures")
+        editmenu.Append(ID_START_ALIGN, "Align pictures")
+        editmenu.Append(ID_START_STACK, "Stack pictures")
 
 
         menuBar = wx.MenuBar()
@@ -36,13 +46,13 @@ class MeteorStackFrame(wx.Frame):
         menuBar.Append(editmenu, "&Edit")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU, self.ImportPictures, id=100)
-        self.Bind(wx.EVT_MENU, self.SaveResults, id=101)
-        self.Bind(wx.EVT_MENU, self.OnExit, id=102)
+        self.Bind(wx.EVT_MENU, self.ImportPictures, id=ID_IMPORT_PICTURES)
+        self.Bind(wx.EVT_MENU, self.SaveResults, id=ID_SAVE_RESULTS)
+        self.Bind(wx.EVT_MENU, self.OnExit, id=ID_EXIT)
 
-        self.Bind(wx.EVT_MENU, self.AlignStack, id=103)
-        self.Bind(wx.EVT_MENU, self.Align, id=104)
-        self.Bind(wx.EVT_MENU, self.Stack, id=105)
+        self.Bind(wx.EVT_MENU, self.AlignStack, id=ID_START_ALIGN_AND_STACK)
+        self.Bind(wx.EVT_MENU, self.Align, id=ID_START_ALIGN)
+        self.Bind(wx.EVT_MENU, self.Stack, id=ID_START_STACK)
 
 
     def ImportPictures(self, event):
