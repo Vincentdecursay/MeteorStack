@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import wx
+import wx.lib.mixins.listctrl as listmix
 from threading import *
 import sys
 import cv2
@@ -16,12 +17,14 @@ ID_STOP_ALIGN = wx.NewIdRef(count=1)
 ID_START_STACK = wx.NewIdRef(count=1)
 ID_STOP_STACK = wx.NewIdRef(count=1)
 
+#log window
 class RedirectText(object):
     def __init__(self,aWxTextCtrl):
         self.out = aWxTextCtrl
 
     def write(self,string):
         self.out.WriteText(string)
+
 
 class MeteorStackFrame(wx.Frame):
 
@@ -60,15 +63,43 @@ class MeteorStackFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.Align, id=ID_START_ALIGN)
         self.Bind(wx.EVT_MENU, self.Stack, id=ID_START_STACK)
 
+        #TODO: add checkbox: https://zetcode.com/wxpython/advanced/
+        # Checklistctrl
+        self.list_ctrl_file_manager = wx.ListCtrl(self, size=(-1,100),
+                 style=wx.LC_REPORT
+                 |wx.BORDER_SUNKEN
+                 )
+        self.list_ctrl_file_manager.InsertColumn(0, 'Pictures', width=125)
+        self.list_ctrl_file_manager.InsertColumn(1, '', width=15)
 
-        sizer = wx.GridBagSizer(hgap=5, vgap=5)
 
-        self.log = wx.TextCtrl(self, -1, size=(400, -1), style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
+        self.log = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.TE_READONLY)
         redir = RedirectText(self.log)
         sys.stdout = redir
 
+        sizer = wx.GridBagSizer()
+
+        #bw = wx.Button(self, label="FILE MANAGER")
+        sizer.Add(self.list_ctrl_file_manager, pos=(0,0), span=(12,1), flag=wx.EXPAND)
+
+        bw = wx.Button(self, label="IMAGE VIEWER")
+        sizer.Add(bw, pos=(0,1), span=(5,3), flag=wx.EXPAND)
+
+        #bw = wx.Button(self, label="CONSOLE")
+        sizer.Add(self.log, pos=(5,1), span=(5,3), flag=wx.EXPAND)
+
+        bw = wx.Button(self, label="Buttons panel")
+        sizer.Add(bw, pos=(10,1), span=(1,3), flag=wx.EXPAND)
+
+        sizer.AddGrowableCol(1)
+        sizer.AddGrowableRow(0)
+
+
+        self.SetSizer(sizer)
+        self.Fit()
+
     def ImportPictures(self, event):
-        print("import pictures")
+        print("importing pictures")
         with wx.FileDialog(self, "Import pictures", wildcard="All files (*.*)|*.*",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as fileDialog:
 
@@ -86,6 +117,9 @@ class MeteorStackFrame(wx.Frame):
 
             # reset aligned images
             self.align_images = []
+
+            #refresh file MANAGER
+            self.file_manager_refresh(True)
 
 
     def SaveResults(self, event):
@@ -119,7 +153,6 @@ class MeteorStackFrame(wx.Frame):
         if self.focusimages == []:
             return #no picture to stack
 
-        wait = wx.BusyInfo("Please wait, working...")
         self.align_images = FocusStack.align_images(self.focusimages, cv2.MOTION_HOMOGRAPHY)
 
     def Stack(self, event):
@@ -129,15 +162,17 @@ class MeteorStackFrame(wx.Frame):
             if self.focusimages == []:
                 return #no images to stack
             else:
-                wait = wx.BusyInfo("Please wait, working...")
                 merged = FocusStack.focus_stack(self.focusimages)
         else:
-            wait = wx.BusyInfo("Please wait, working...")
             merged = FocusStack.focus_stack(self.align_images)
-            print(type(merged))
         self.stackedimages = merged
 
-
+    #https://www.blog.pythonlibrary.org/2011/01/04/wxpython-wx-listctrl-tips-and-tricks/
+    def file_manager_refresh(self, event):
+        index = 0
+        for img in self.picturesPath:
+            self.list_ctrl_file_manager.InsertStringItem(index, img)
+            index += 1
 
 if __name__ == '__main__':
     # When this module is run (not imported) then create the app, the
